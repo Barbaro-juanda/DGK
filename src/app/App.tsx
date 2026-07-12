@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import {
   ArrowUpRight,
   ChevronDown,
-  CirclePlay,
   Menu,
   MessageCircle,
   ShoppingBag,
@@ -13,16 +12,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router";
 import { asset, wa } from "./wa";
-
-// Servicios como tarjetas: 4 con video en loop + Restauración con foto antes/después (swap al hover).
-type Servicio = { id: string; nombre: string; resumen: string; waText: string; alt: string; video?: string; imagen?: string; imagenHover?: string };
-const servicios: Servicio[] = [
-  { id: "detailing-general", nombre: "Detailing general", resumen: "Lavado y pulido profesional, el punto de partida de todo trabajo.", video: "detailing-honda.mp4", waText: "Hola, quiero cotizar un detailing general para mi moto", alt: "Detallado de una Honda Hornet en el taller DGK" },
-  { id: "ppf", nombre: "Instalación de PPF", resumen: "Film de protección de pintura, instalación de precisión.", video: "ppf-instalacion.mp4", waText: "Hola, quiero cotizar la instalación de PPF para mi moto", alt: "Instalación de film PPF sobre la moto con espátula" },
-  { id: "ceramico-moto", nombre: "Cerámico para moto", resumen: "Protección y brillo que se mantiene, sellado de larga duración.", video: "ceramico-moto.mp4", waText: "Hola, quiero cotizar el cerámico para mi moto", alt: "Aplicación de cerámico sobre el tanque de una moto" },
-  { id: "ceramico-casco", nombre: "Cerámico para casco", resumen: "El mismo estándar premium, ahora para tu casco.", video: "ceramico-casco.mp4", waText: "Hola, quiero cotizar el cerámico para mi casco", alt: "Cerámico aplicado a un casco frente al muro DGK" },
-  { id: "restauracion", nombre: "Restauración de pintura", resumen: "Partes negras y pintura recuperadas: el antes y después habla por sí solo.", imagen: "restauracion-antes.png", imagenHover: "restauracion-despues.png", waText: "Hola, quiero cotizar una restauración de pintura para mi moto", alt: "Tanque negro restaurado a acabado espejo" },
-];
+import { servicios } from "./servicios-data";
+import { products } from "./products";
 
 // Sección Compromiso: 4 pilares, cada uno con foto real (orden definido por el cliente).
 type Pilar = { numero: string; titulo: string; texto: string; video?: string; imagen?: string; alt?: string; pos?: string };
@@ -38,14 +29,25 @@ const compromiso: { eyebrow: string; titulo: string; subtexto: string; pilares: 
   ],
 };
 
+// Teasers del Home: 2-3 elementos destacados, el detalle completo vive en su propia página.
+const serviciosTeaser = servicios.filter((s) => ["detailing-general", "ceramico-moto", "restauracion"].includes(s.id));
+const productosTeaser = products.filter((p) => ["ceramico-6k-carbon", "shampoo-ph-neutro", "lubricante-cadena"].includes(p.slug));
+
 const images = {
-  // Flat-lay real de la línea DGK (los 9 productos).
-  productos: asset("dgk-linea-productos.png"),
-  // Certificados reales: dos alumnos con certificado junto a la Ducati, muro "DGK Detailing" visible.
   certificados: asset("certificados-alumnos.png"),
+  restauracionAntes: asset("restauracion-antes.png"),
+  restauracionDespues: asset("restauracion-despues.png"),
   // TODO(asset real): "Imagen 4" — BMW GS completa frente al muro con logo DGK. Stand-in: 6K.Carbon en el taller.
   final: asset("dgk-6k-taller.jpg"),
 };
+
+const indice = [
+  ["01", "Servicios", "#servicios"],
+  ["02", "Compromiso", "#compromiso"],
+  ["03", "Antes / Después", "#antes-despues"],
+  ["04", "Línea DGK", "/tienda"],
+  ["05", "Formación", "#formacion"],
+];
 
 function Grain() {
   return <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] opacity-[0.035] mix-blend-screen [background-image:url('data:image/svg+xml,%3Csvg viewBox=%220 0 180 180%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%221%22/%3E%3C/svg%3E')]" />;
@@ -67,6 +69,7 @@ export default function App() {
         gsap.fromTo(heroCopy, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 1, delay: 0.45, ease: "power3.out" });
       }
       if (hero) {
+        // Parallax de fondo, no fija la sección en pantalla (sin pin).
         gsap.to("[data-hero-video]", {
           scale: 1.08,
           opacity: 0.42,
@@ -75,17 +78,29 @@ export default function App() {
         });
       }
 
+      // Único bloque que se fija en pantalla: es una transformación paso a paso (wipe antes/después),
+      // no una sección de contenido normal. Todo lo demás usa reveal simple sin pin (ver más abajo).
+      const antesDespues = document.querySelector("[data-antes-despues]");
+      if (antesDespues) {
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: antesDespues, start: "center center", end: "+=150%", scrub: 0.55, pin: true, anticipatePin: 1 },
+        });
+        tl.fromTo("[data-after-layer]", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", ease: "none" }, 0);
+        tl.fromTo("[data-after-media]", { scale: 1.12, filter: "blur(5px)" }, { scale: 1, filter: "blur(0px)", ease: "none" }, 0);
+      }
+
+      // Reveal simple: fade + translateY, sin pin ni scrub — aparece una vez al entrar en el viewport.
       gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((item) => {
-        gsap.fromTo(item, { opacity: 0, y: 18 }, {
+        gsap.fromTo(item, { opacity: 0, y: 20 }, {
           opacity: 1, y: 0, duration: 0.72, ease: "power3.out",
-          scrollTrigger: { trigger: item, start: "top 84%", once: true },
+          scrollTrigger: { trigger: item, start: "top 86%", once: true },
         });
       });
 
       gsap.utils.toArray<HTMLElement>("[data-stagger]").forEach((group) => {
-        gsap.fromTo(group.children, { opacity: 0, y: 15 }, {
-          opacity: 1, y: 0, stagger: 0.075, duration: 0.58, ease: "power3.out",
-          scrollTrigger: { trigger: group, start: "top 82%", once: true },
+        gsap.fromTo(group.children, { opacity: 0, y: 20 }, {
+          opacity: 1, y: 0, stagger: 0.08, duration: 0.6, ease: "power3.out",
+          scrollTrigger: { trigger: group, start: "top 86%", once: true },
         });
       });
 
@@ -111,10 +126,11 @@ export default function App() {
             <span className="grid size-8 place-items-center border border-[#E5B500] text-[11px] font-bold tracking-[-0.08em]">DGK</span>
             <span className="text-[11px] font-medium uppercase tracking-[0.22em]">Detailing</span>
           </a>
-          <div className="hidden items-center gap-8 text-[11px] font-medium uppercase tracking-[0.18em] text-white/70 md:flex">
+          <div className="hidden items-center gap-7 text-[11px] font-medium uppercase tracking-[0.18em] text-white/70 lg:flex">
             <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#servicios">Servicios</a>
             <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#compromiso">Compromiso</a>
-            <Link className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" to="/linea">Línea DGK</Link>
+            <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#antes-despues">Antes / Después</a>
+            <Link className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" to="/tienda">Línea DGK</Link>
             <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#formacion">Formación</a>
           </div>
           <button onClick={() => menu.current?.showModal()} className="grid size-10 place-items-center rounded-full border border-white/25 text-white transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" aria-label="Abrir menú"><Menu size={18} /></button>
@@ -137,7 +153,7 @@ export default function App() {
           <a href="#servicios" className="absolute bottom-7 right-5 flex items-center gap-3 rounded-sm font-mono text-[10px] uppercase tracking-[0.18em] text-white/75 transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] md:bottom-10 md:right-10">Descubrir <ChevronDown size={16} /></a>
         </section>
 
-        {/* Servicios (reemplaza la antigua sección "El método"). */}
+        {/* Servicios — teaser: 3 destacados + botón "Ver todos" a /servicios (el detalle completo vive allá). */}
         <section id="servicios" className="bg-[#171714] px-5 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-[1480px]">
             <div className="mb-12 grid gap-8 md:grid-cols-2 md:items-end">
@@ -147,9 +163,9 @@ export default function App() {
               </div>
               <p className="max-w-sm text-sm leading-6 text-white/60 md:justify-self-end">Cinco servicios distintos, cada uno con su técnica. Sin precios de catálogo: cotizamos según tu moto.</p>
             </div>
-            <div data-stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {servicios.map((s) => (
-                <article key={s.id} className="group relative flex min-h-[360px] flex-col justify-end overflow-hidden bg-[#1b1a17] p-6 md:min-h-[420px] md:p-8">
+            <div data-stagger className="grid gap-4 sm:grid-cols-3">
+              {serviciosTeaser.map((s) => (
+                <article key={s.id} className="group relative flex min-h-[300px] flex-col justify-end overflow-hidden bg-[#1b1a17] p-6 md:min-h-[340px]">
                   {s.video ? (
                     <video className="absolute inset-0 size-full object-cover opacity-70 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-90" autoPlay muted loop playsInline preload="metadata" aria-label={s.alt}>
                       <source src={asset(s.video)} type="video/mp4" />
@@ -158,22 +174,21 @@ export default function App() {
                     <>
                       <img src={asset(s.imagen!)} alt={s.alt} className="absolute inset-0 size-full object-cover transition duration-700 group-hover:scale-[1.03]" />
                       {s.imagenHover && <img src={asset(s.imagenHover)} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-0 transition duration-500 group-hover:opacity-100" />}
-                      {s.imagenHover && <span className="absolute right-5 top-5 z-10 font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">Antes → Después</span>}
                     </>
                   )}
-                  <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(10,10,9,.92)_0%,rgba(10,10,9,.35)_55%,rgba(10,10,9,.15)_100%)]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(10,10,9,.9)_0%,rgba(10,10,9,.3)_60%,rgba(10,10,9,.1)_100%)]" />
                   <div className="relative">
-                    <h3 className="max-w-md font-display text-3xl leading-[0.95] tracking-[-0.03em] text-[#f5f1e8] md:text-4xl">{s.nombre}</h3>
-                    <p className="mt-3 max-w-sm text-sm leading-6 text-white/65">{s.resumen}</p>
-                    <a href={wa(s.waText)} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Cotizar <ArrowUpRight size={15} /></a>
+                    <h3 className="text-2xl leading-[0.95] tracking-[-0.02em] text-[#f5f1e8]">{s.nombre}</h3>
+                    <p className="mt-2 text-sm leading-5 text-white/65">{s.resumen}</p>
                   </div>
                 </article>
               ))}
             </div>
+            <Link to="/servicios" className="mt-8 inline-flex items-center gap-3 border-b border-[#E5B500] pb-2 font-mono text-[11px] uppercase tracking-[0.16em] text-[#E5B500] transition hover:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">Ver todos los servicios <ArrowUpRight size={16} /></Link>
           </div>
         </section>
 
-        {/* Compromiso: grid 2x2, entrada en cascada. Tarjetas sin imagen = solo número + título + texto. */}
+        {/* Compromiso: grid 2x2, entrada en cascada. Se queda completo en el home. */}
         <section id="compromiso" className="bg-[#e6e0d5] px-5 py-20 text-[#171714] md:px-10 md:py-28">
           <div className="mx-auto max-w-[1480px]">
             <div className="mb-12 max-w-2xl">
@@ -201,12 +216,56 @@ export default function App() {
           </div>
         </section>
 
-        {/* Línea DGK: teaser en el home; el catálogo con precios vive en /linea. */}
-        <section id="linea" className="bg-[#171714] px-5 py-20 md:px-10 md:py-28">
+        {/* Antes / Después: única sección que se fija en pantalla — wipe controlado por scroll. */}
+        <section id="antes-despues" data-antes-despues className="relative flex min-h-screen flex-col justify-center bg-[#121210] px-5 py-20 md:px-10 md:py-32">
+          <div className="mx-auto w-full max-w-[1480px]">
+            <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+              <div>
+                <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">02 — La transformación</p>
+                <h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] text-[#f5f1e8] md:text-7xl">Antes / <em className="text-[#E5B500]">después</em></h2>
+              </div>
+              <p className="max-w-xs text-sm leading-6 text-white/60">El scroll abre la diferencia. Micro-rayas y opacidad a la izquierda; acabado espejo a la derecha.</p>
+            </div>
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden bg-[#292824]">
+              <img src={images.restauracionAntes} alt="Tanque negro de moto con micro-rayas y opacidad, antes de la restauración DGK" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-x-0 top-4 z-10 flex justify-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/85">Antes</div>
+              <div data-after-layer className="absolute inset-0 overflow-hidden" style={{ clipPath: "inset(0 100% 0 0)" }}>
+                <div data-after-media className="absolute inset-0 size-full origin-left">
+                  <img src={images.restauracionDespues} alt="Mismo tanque negro con acabado espejo tras la restauración DGK" className="absolute inset-0 size-full object-cover" />
+                </div>
+                <div className="absolute inset-y-0 right-0 w-px bg-[#E5B500] shadow-[0_0_24px_5px_rgba(229,181,0,.45)]" />
+                <div className="absolute inset-x-0 top-4 z-10 flex justify-center font-mono text-[10px] uppercase tracking-[0.2em] text-[#E5B500]">Después</div>
+              </div>
+            </div>
+            <div className="mt-10 flex justify-center">
+              <a href={wa("Hola, quiero cotizar una restauración de pintura para mi moto")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#121210]">Cotizar restauración <ArrowUpRight size={16} /></a>
+            </div>
+          </div>
+        </section>
+
+        {/* Línea DGK — teaser: 3 productos destacados (uno por categoría) + botón "Ver todos" a /tienda. */}
+        <section id="tienda" className="bg-[#171714] px-5 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-[1480px]">
-            <div className="mb-12 grid gap-8 md:grid-cols-2 md:items-end"><div><p className="mb-4 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">03 — La línea DGK</p><h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] text-[#f5f1e8] md:text-7xl">Lo que pones<br />en tus manos.</h2></div><p className="max-w-sm text-sm leading-6 text-white/60 md:justify-self-end">Fórmulas profesionales para mantener el estándar entre cada visita al taller. Nueve productos, con precios, en la tienda.</p></div>
-            <div data-reveal className="relative overflow-hidden bg-[#23221e]"><img src={images.productos} alt="Los nueve productos de la línea DGK dispuestos en flat-lay sobre fondo oscuro" className="absolute inset-0 size-full object-cover" /><video className="relative aspect-[16/8] w-full object-cover opacity-60 mix-blend-screen" autoPlay muted loop playsInline preload="metadata"><source src={asset("Todos_los_productos.mp4")} type="video/mp4" /></video><div className="absolute inset-0 bg-gradient-to-t from-[#171714] via-transparent to-transparent" /><div className="absolute bottom-5 left-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#F2C623]"><CirclePlay size={15} /> Serie de producto / DGK</div></div>
-            <Link to="/linea" className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Ver la línea y precios <ArrowUpRight size={16} /></Link>
+            <div className="mb-12 grid gap-8 md:grid-cols-2 md:items-end">
+              <div>
+                <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">03 — La línea DGK</p>
+                <h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] text-[#f5f1e8] md:text-7xl">Lo que pones<br />en tus manos.</h2>
+              </div>
+              <p className="max-w-sm text-sm leading-6 text-white/60 md:justify-self-end">Fórmulas profesionales para mantener el estándar entre cada visita al taller. Nueve productos, con precios, en la tienda.</p>
+            </div>
+            <div data-stagger className="grid gap-4 sm:grid-cols-3">
+              {productosTeaser.map((p) => (
+                <Link key={p.slug} to={`/tienda/${p.slug}`} className="group flex flex-col overflow-hidden rounded-sm bg-[#1b1a17] transition hover:bg-[#22211d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">
+                  <div className="overflow-hidden bg-[#22211d]"><img src={p.imagen} alt={p.nombre} className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04]" /></div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3 className="text-lg leading-6 text-[#f5f1e8]">{p.nombre}</h3>
+                    <p className="mt-1 text-xs text-white/45">{p.detalle}</p>
+                    <p className="mt-3 font-mono text-lg text-[#F2C623]">{p.precio}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <Link to="/tienda" className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Ver los 9 productos <ArrowUpRight size={16} /></Link>
           </div>
         </section>
 
@@ -217,7 +276,7 @@ export default function App() {
 
       <a href={wa("Hola, quiero más información sobre DGK Detailing")} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp" className="fixed bottom-5 right-5 z-40 grid size-14 place-items-center rounded-full bg-[#E5B500] text-[#171714] shadow-[0_0_0_0_rgba(203,166,95,.4)] transition duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714] motion-safe:animate-[pulse_2.8s_ease-in-out_infinite]"><MessageCircle size={23} /></a>
 
-      <dialog ref={menu} className="m-0 h-screen w-screen max-w-none border-0 bg-[#171714] p-0 text-[#f5f1e8] backdrop:bg-black/70"><div className="flex h-full flex-col justify-between p-6 md:p-10"><div className="flex items-center justify-between"><span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#E5B500]">DGK / Índice</span><button onClick={closeMenu} className="grid size-10 place-items-center rounded-full border border-white/20 transition hover:border-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" aria-label="Cerrar menú"><X size={19} /></button></div><div className="flex flex-col gap-4 font-display text-5xl leading-none md:text-7xl">{[["01", "Servicios", "#servicios"], ["02", "Compromiso", "#compromiso"], ["03", "Línea DGK", "/linea"], ["04", "Formación", "#formacion"]].map(([number, name, target]) => target.startsWith("/") ? <Link onClick={closeMenu} to={target} key={name} className="group flex items-baseline gap-5 rounded-sm transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><span className="font-mono text-[11px] text-[#E5B500]">{number}</span>{name}</Link> : <a onClick={closeMenu} href={target} key={name} className="group flex items-baseline gap-5 rounded-sm transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><span className="font-mono text-[11px] text-[#E5B500]">{number}</span>{name}</a>)}</div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">Hecho para la máquina. Pensado para ti.</p></div></dialog>
+      <dialog ref={menu} className="m-0 h-screen w-screen max-w-none border-0 bg-[#171714] p-0 text-[#f5f1e8] backdrop:bg-black/70"><div className="flex h-full flex-col justify-between p-6 md:p-10"><div className="flex items-center justify-between"><span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#E5B500]">DGK / Índice</span><button onClick={closeMenu} className="grid size-10 place-items-center rounded-full border border-white/20 transition hover:border-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" aria-label="Cerrar menú"><X size={19} /></button></div><div className="flex flex-col gap-4 font-display text-4xl leading-none md:text-6xl">{indice.map(([number, name, target]) => target.startsWith("/") ? <Link onClick={closeMenu} to={target} key={name} className="group flex items-baseline gap-5 rounded-sm transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><span className="font-mono text-[11px] text-[#E5B500]">{number}</span>{name}</Link> : <a onClick={closeMenu} href={target} key={name} className="group flex items-baseline gap-5 rounded-sm transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><span className="font-mono text-[11px] text-[#E5B500]">{number}</span>{name}</a>)}</div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">Hecho para la máquina. Pensado para ti.</p></div></dialog>
     </div>
   );
 }
