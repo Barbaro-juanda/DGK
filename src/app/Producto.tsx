@@ -28,7 +28,7 @@ export default function Producto() {
   }, [producto]);
 
   // Slug inválido → de vuelta a la línea.
-  if (!producto) return <Navigate to="/tienda" replace />;
+  if (!producto) return <Navigate to="/linea" replace />;
 
   const otros = products.filter((p) => p.slug !== producto.slug).slice(0, 4);
   const pedido = wa(`Hola, quiero pedir ${cantidad} × ${producto.nombre} (${producto.precio}) de la línea DGK`);
@@ -43,13 +43,13 @@ export default function Producto() {
             <span className="grid size-8 place-items-center border border-[#E5B500] text-[11px] font-bold tracking-[-0.08em]">DGK</span>
             <span className="text-[11px] font-medium uppercase tracking-[0.22em]">Detailing</span>
           </Link>
-          <Link to="/tienda" className="flex items-center gap-2 rounded-sm font-mono text-[11px] uppercase tracking-[0.18em] text-white/70 transition hover:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><ArrowLeft size={15} /> Tienda DGK</Link>
+          <Link to="/linea" className="flex items-center gap-2 rounded-sm font-mono text-[11px] uppercase tracking-[0.18em] text-white/70 transition hover:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><ArrowLeft size={15} /> Línea DGK</Link>
         </nav>
       </header>
 
       <main id="contenido" className="bg-background px-5 py-8 md:px-10 md:py-14">
         <div className="mx-auto max-w-[1480px]">
-          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.18em] text-white/45"><Link to="/tienda" className="transition hover:text-[#E5B500]">Tienda DGK</Link> / <span className="text-white/80">{producto.nombre}</span></p>
+          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.18em] text-white/45"><Link to="/linea" className="transition hover:text-[#E5B500]">Línea DGK</Link> / <span className="text-white/80">{producto.nombre}</span></p>
 
           <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-14">
             {/* Foto del producto */}
@@ -92,7 +92,7 @@ export default function Producto() {
             <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">Más de la línea DGK</p>
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               {otros.map((p) => (
-                <Link key={p.slug} to={`/tienda/${p.slug}`} className="group rounded-sm bg-[#1b1a17] p-3 transition hover:bg-[#22211d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">
+                <Link key={p.slug} to={`/linea/${p.slug}`} className="group rounded-sm bg-[#1b1a17] p-3 transition hover:bg-[#22211d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">
                   <div className="overflow-hidden rounded-sm bg-[#22211d]"><img src={p.imagen} alt={p.nombre} className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04]" /></div>
                   <h3 className="mt-3 text-sm text-[#f5f1e8]">{p.nombre}</h3>
                   <p className="mt-1 font-mono text-sm text-[#F2C623]">{p.precio}</p>

@@ -1,7 +1,5 @@
 import { asset } from "./wa";
 
-export type Categoria = "Limpieza y lavado" | "Protección y restauración" | "Detallado";
-
 export type Producto = {
   slug: string;
   ref: string;
@@ -11,12 +9,9 @@ export type Producto = {
   imagen: string;
   presentacion: string;
   descripcion: string;
-  categoria: Categoria;
 };
 
-export const categorias: Categoria[] = ["Limpieza y lavado", "Protección y restauración", "Detallado"];
-
-// Catálogo real de la línea DGK. Cada producto tiene su foto y su página propia (/tienda/:slug).
+// Catálogo real de la línea DGK. Cada producto tiene su foto y su página propia (/linea/:slug).
 export const products: Producto[] = [
   {
     slug: "ceramico-6k-carbon",
@@ -27,7 +22,6 @@ export const products: Producto[] = [
     imagen: asset("dgk-6k-taller.jpg"),
     presentacion: "30 ml",
     descripcion: "Recubrimiento cerámico de alto sólido con efecto hidrofóbico y alto brillo. Protege y sella la pintura hasta por 12 meses, con filtro UV y mayor resistencia química. Ideal para mantener el acabado como recién salido del taller.",
-    categoria: "Protección y restauración",
   },
   {
     slug: "restaurador-krom",
@@ -38,7 +32,6 @@ export const products: Producto[] = [
     imagen: asset("prod-restaurador-krom.webp"),
     presentacion: "120 gr",
     descripcion: "Restaurador de partes negras y pintura mate. Recupera el color y protege plásticos, gomas y superficies mate, devolviéndoles un aspecto uniforme sin dejar brillo artificial.",
-    categoria: "Protección y restauración",
   },
   {
     slug: "lubricante-cadena",
@@ -49,7 +42,6 @@ export const products: Producto[] = [
     imagen: asset("prod-lubricante-cadena.webp"),
     presentacion: "120 ml",
     descripcion: "Lubricante de cadena de alta adherencia. Reduce el desgaste y protege contra la corrosión, manteniendo la transmisión suave y silenciosa entre cada mantenimiento.",
-    categoria: "Detallado",
   },
   {
     slug: "shampoo-ph-neutro",
@@ -60,7 +52,6 @@ export const products: Producto[] = [
     imagen: asset("prod-shampoo.jpg"),
     presentacion: "540 ml",
     descripcion: "Shampoo concentrado de pH neutro. Limpia a fondo sin retirar sellados ni ceras, dejando un acabado brillante y reluciente. Fórmula de alta tecnología, rinde por su concentración.",
-    categoria: "Limpieza y lavado",
   },
   {
     slug: "silicona-7-en-1",
@@ -71,7 +62,6 @@ export const products: Producto[] = [
     imagen: asset("prod-silicona.webp"),
     presentacion: "250 ml",
     descripcion: "Silicona multiuso 7 en 1: brillo, protección UV, antiadherente, antiempañante, lavado en seco, previene la oxidación y resiste altas temperaturas. Un solo producto para múltiples superficies.",
-    categoria: "Protección y restauración",
   },
   {
     slug: "desengrasante-multiusos",
@@ -82,7 +72,6 @@ export const products: Producto[] = [
     imagen: asset("prod-desengrasante.webp"),
     presentacion: "540 ml",
     descripcion: "Desengrasante multiusos de fórmula concentrada y rendidora. Limpia eficazmente motor, cadena, rines, chasis, plásticos y suspensiones. Se puede diluir en agua según el nivel de grasa.",
-    categoria: "Limpieza y lavado",
   },
   {
     slug: "limpiador-cascos",
@@ -93,7 +82,6 @@ export const products: Producto[] = [
     imagen: asset("prod-limpiador-cascos.webp"),
     presentacion: "30 ml",
     descripcion: "Limpiador de cascos antibacterial. Limpia visor e interior sin dañar los materiales, ideal para llevar en tus viajes. Uso externo.",
-    categoria: "Detallado",
   },
   {
     slug: "scotch-brite",
@@ -104,7 +92,6 @@ export const products: Producto[] = [
     imagen: asset("prod-scotch-brite.webp"),
     presentacion: "Unidad",
     descripcion: "Almohadilla Scotch-Brite para limpieza y preparación de superficies. Herramienta de uso profesional en el taller para un acabado impecable.",
-    categoria: "Limpieza y lavado",
   },
   {
     slug: "cepillo-cadena",
@@ -115,7 +102,6 @@ export const products: Producto[] = [
     imagen: asset("prod-cepillo-cadena.jpg"),
     presentacion: "Unidad",
     descripcion: "Cepillo de precisión para limpieza de cadena. Sus cerdas llegan a cada eslabón para un desengrase profundo y un mantenimiento más rápido y cómodo.",
-    categoria: "Detallado",
   },
 ];
 
