@@ -1,0 +1,12 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+dist-ssr/
+.vite/
+
+# Sistema / editor
+.DS_Store
+*.local
+*.log
