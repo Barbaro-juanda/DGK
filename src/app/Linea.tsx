@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
-import { ArrowLeft, ArrowUpRight, MessageCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Check, Plus } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router";
-import { wa } from "./wa";
+import { asset } from "./wa";
 import { products } from "./products";
+import { useCart } from "./cart";
+import CartButton from "./CartButton.tsx";
 
 function Grain() {
   return <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] opacity-[0.035] mix-blend-screen [background-image:url('data:image/svg+xml,%3Csvg viewBox=%220 0 180 180%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%221%22/%3E%3C/svg%3E')]" />;
@@ -12,6 +14,7 @@ function Grain() {
 
 export default function Linea() {
   const app = useRef<HTMLDivElement>(null);
+  const { addItem } = useCart();
 
   useEffect(() => {
     const prevTitle = document.title;
@@ -20,7 +23,7 @@ export default function Linea() {
     document.title = "Línea DGK — Productos y precios | Cerámico, shampoo, lubricante y más";
     metaEl?.setAttribute(
       "content",
-      "La línea propia de productos DGK para el cuidado de tu moto: cerámico 6K.Carbon, restaurador Krom, shampoo pH neutro, lubricante de cadena y más. Precios y compra por WhatsApp."
+      "La línea propia de productos DGK para el cuidado de tu moto: cerámico 6K.Carbon, restaurador Krom, shampoo pH neutro, lubricante de cadena y más. Compra directo en la web."
     );
     window.scrollTo(0, 0);
     return () => {
@@ -50,11 +53,15 @@ export default function Linea() {
 
       <header className="absolute inset-x-0 top-0 z-30 px-5 py-5 md:px-10 md:py-8">
         <nav className="mx-auto flex max-w-[1480px] items-center justify-between" aria-label="Principal">
-          <Link to="/" className="group flex items-center gap-2.5 rounded-sm text-[#f4f0e8] outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4 focus-visible:ring-offset-[#111]">
-            <span className="grid size-8 place-items-center border border-[#E5B500] text-[11px] font-bold tracking-[-0.08em]">DGK</span>
-            <span className="text-[11px] font-medium uppercase tracking-[0.22em]">Detailing</span>
+          <Link to="/" aria-label="DGK Detailing — inicio" className="group flex items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4 focus-visible:ring-offset-[#111]">
+            <img src={asset("logo-dgk.png")} alt="DGK — Definition good keeper" className="h-9 w-auto md:h-10" />
           </Link>
-          <Link to="/" className="flex items-center gap-2 rounded-sm font-mono text-[11px] uppercase tracking-[0.18em] text-white/70 transition hover:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><ArrowLeft size={15} /> Inicio</Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="hidden items-center gap-2 rounded-sm font-mono text-[11px] uppercase tracking-[0.18em] text-white/70 transition hover:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] sm:flex">
+              <ArrowLeft size={15} /> Inicio
+            </Link>
+            <CartButton />
+          </div>
         </nav>
       </header>
 
@@ -63,36 +70,44 @@ export default function Linea() {
           <div className="mx-auto max-w-[1480px]">
             <p className="mb-6 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[#E5B500]"><span className="size-1.5 rounded-full bg-[#E5B500]" /> Línea DGK / Productos</p>
             <h1 className="max-w-4xl font-display text-[clamp(2.8rem,7vw,6rem)] font-medium leading-[0.9] tracking-[-0.04em] text-[#f6f2eb]">Lo que pones<br /><em className="font-normal text-[#E5B500]">en tus manos.</em></h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-white/65">Nuestra línea propia: lo mismo que aplicamos en el taller, todos los días. Toca un producto para ver su detalle. La compra se coordina por WhatsApp.</p>
+            <p className="mt-7 max-w-xl text-base leading-7 text-white/65">Nuestra línea propia: lo mismo que aplicamos en el taller, todos los días. Agrégalo al carrito y págalo aquí mismo.</p>
           </div>
         </section>
 
         <section className="bg-[#171714] px-5 pb-24 pt-6 md:px-10 md:pb-32">
           <div data-stagger className="mx-auto grid max-w-[1480px] gap-4 grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
-              <Link key={p.slug} to={`/linea/${p.slug}`} className="group flex flex-col overflow-hidden rounded-sm bg-[#1b1a17] transition hover:bg-[#22211d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">
-                <div className="relative overflow-hidden bg-[#22211d]">
-                  <img src={p.imagen} alt={p.nombre} className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
-                  {p.nombre.includes("Cerámico") && <span className="absolute left-3 top-3 bg-[#E5B500] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#171714]">Top</span>}
-                </div>
-                <div className="flex flex-1 flex-col p-5">
-                  <h2 className="text-lg leading-6 text-[#f5f1e8]">{p.nombre}</h2>
-                  <p className="mt-1 text-xs text-white/45">{p.detalle}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <p className="font-mono text-lg text-[#F2C623]">{p.precio}</p>
-                    <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#E5B500] opacity-0 transition group-hover:opacity-100">Ver <ArrowUpRight size={14} /></span>
-                  </div>
-                </div>
-              </Link>
+              <ProductoCard key={p.slug} slug={p.slug} nombre={p.nombre} detalle={p.detalle} precio={p.precio} imagen={p.imagen} onAdd={() => addItem(p.slug, 1)} />
             ))}
-          </div>
-          <div className="mx-auto mt-10 max-w-[1480px]">
-            <a href={wa("Hola, quiero pedir varios productos de la línea DGK")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Pedir por WhatsApp <MessageCircle size={16} /></a>
           </div>
         </section>
       </main>
+    </div>
+  );
+}
 
-      <a href={wa("Hola, quiero más información sobre la línea de productos DGK")} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp" className="fixed bottom-5 right-5 z-40 grid size-14 place-items-center rounded-full bg-[#E5B500] text-[#171714] shadow-[0_0_0_0_rgba(229,181,0,.4)] transition duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714] motion-safe:animate-[pulse_2.8s_ease-in-out_infinite]"><MessageCircle size={23} /></a>
+function ProductoCard({ slug, nombre, detalle, precio, imagen, onAdd }: { slug: string; nombre: string; detalle: string; precio: string; imagen: string; onAdd: () => void }) {
+  const [agregado, setAgregado] = useState(false);
+  return (
+    <div className="group relative flex flex-col overflow-hidden rounded-sm bg-[#1b1a17] transition hover:bg-[#22211d]">
+      <Link to={`/linea/${slug}`} className="relative overflow-hidden bg-[#22211d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">
+        <img src={imagen} alt={nombre} className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
+        {nombre.includes("Cerámico") && <span className="absolute left-3 top-3 bg-[#E5B500] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#171714]">Top</span>}
+      </Link>
+      <div className="flex flex-1 flex-col p-5">
+        <Link to={`/linea/${slug}`} className="rounded-sm text-lg leading-6 text-[#f5f1e8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">{nombre}</Link>
+        <p className="mt-1 text-xs text-white/45">{detalle}</p>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <p className="font-mono text-lg text-[#F2C623]">{precio}</p>
+          <button
+            onClick={() => { onAdd(); setAgregado(true); setTimeout(() => setAgregado(false), 1400); }}
+            aria-label={`Añadir ${nombre} al carrito`}
+            className="flex items-center gap-1.5 rounded-full bg-[#E5B500] px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#171714] transition duration-200 hover:scale-[1.05] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623]"
+          >
+            {agregado ? <><Check size={13} /> Listo</> : <><Plus size={13} /> Añadir</>}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

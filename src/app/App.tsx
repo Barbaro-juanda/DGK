@@ -1,7 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
-  ChevronDown,
   CirclePlay,
   Menu,
   MessageCircle,
@@ -13,15 +12,16 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router";
 import { asset, wa } from "./wa";
+import CartButton from "./CartButton.tsx";
 
 // Servicios como tarjetas: 4 con video en loop + Restauración con foto antes/después (swap al hover).
 type Servicio = { id: string; nombre: string; resumen: string; waText: string; alt: string; video?: string; imagen?: string; imagenHover?: string };
 const servicios: Servicio[] = [
-  { id: "detailing-general", nombre: "Detailing general", resumen: "Lavado y pulido profesional, el punto de partida de todo trabajo.", video: "detailing-honda.mp4", waText: "Hola, quiero cotizar un detailing general para mi moto", alt: "Detallado de una Honda Hornet en el taller DGK" },
-  { id: "ppf", nombre: "Instalación de PPF", resumen: "Film de protección de pintura, instalación de precisión.", video: "ppf-instalacion.mp4", waText: "Hola, quiero cotizar la instalación de PPF para mi moto", alt: "Instalación de film PPF sobre la moto con espátula" },
-  { id: "ceramico-moto", nombre: "Cerámico para moto", resumen: "Protección y brillo que se mantiene, sellado de larga duración.", video: "ceramico-moto.mp4", waText: "Hola, quiero cotizar el cerámico para mi moto", alt: "Aplicación de cerámico sobre el tanque de una moto" },
-  { id: "ceramico-casco", nombre: "Cerámico para casco", resumen: "El mismo estándar premium, ahora para tu casco.", video: "ceramico-casco.mp4", waText: "Hola, quiero cotizar el cerámico para mi casco", alt: "Cerámico aplicado a un casco frente al muro DGK" },
-  { id: "restauracion", nombre: "Restauración de pintura", resumen: "Partes negras y pintura recuperadas: el antes y después habla por sí solo.", imagen: "restauracion-antes.png", imagenHover: "restauracion-despues.png", waText: "Hola, quiero cotizar una restauración de pintura para mi moto", alt: "Tanque negro restaurado a acabado espejo" },
+  { id: "detailing-general", nombre: "Detailing general", resumen: "El lavado y pulido que tu moto está pidiendo. El punto de partida de todo.", video: "detailing-honda.mp4", waText: "Hola, quiero cotizar un detailing general para mi moto", alt: "Detallado de una Honda Hornet en el taller DGK" },
+  { id: "ppf", nombre: "Instalación de PPF", resumen: "Un escudo invisible para tu pintura. Se instala con pulso de cirujano.", video: "ppf-instalacion.mp4", waText: "Hola, quiero cotizar la instalación de PPF para mi moto", alt: "Instalación de film PPF sobre la moto con espátula" },
+  { id: "ceramico-moto", nombre: "Cerámico para moto", resumen: "Brillo que dura y mugre que resbala. Protección para el día a día.", video: "ceramico-moto.mp4", waText: "Hola, quiero cotizar el cerámico para mi moto", alt: "Aplicación de cerámico sobre el tanque de una moto" },
+  { id: "ceramico-casco", nombre: "Cerámico para casco", resumen: "El mismo cariño de tu moto, ahora para tu casco.", video: "ceramico-casco.mp4", waText: "Hola, quiero cotizar el cerámico para mi casco", alt: "Cerámico aplicado a un casco frente al muro DGK" },
+  { id: "restauracion", nombre: "Restauración de pintura", resumen: "Partes negras y pintura como nuevas. El antes y después habla solo.", imagen: "restauracion-antes.png", imagenHover: "restauracion-despues.png", waText: "Hola, quiero cotizar una restauración de pintura para mi moto", alt: "Tanque negro restaurado a acabado espejo" },
 ];
 
 // Sección Compromiso: 4 pilares, cada uno con foto real (orden definido por el cliente).
@@ -29,9 +29,9 @@ type Pilar = { numero: string; titulo: string; texto: string; video?: string; im
 const compromiso: { eyebrow: string; titulo: string; subtexto: string; pilares: Pilar[] } = {
   eyebrow: "Nuestro compromiso",
   titulo: "No solo brilla. Funciona.",
-  subtexto: "El detailing no termina en la pintura. Cuidamos cada pieza, se vea o no, con los mismos productos que vendemos y el mismo estándar que enseñamos.",
+  subtexto: "El detailing no termina en la pintura. Cuidamos cada pieza —se vea o no— con los mismos productos que vendemos y el mismo estándar que enseñamos. Como si la moto fuera nuestra.",
   pilares: [
-    { numero: "01", titulo: "Precisión, no producción en serie", texto: "Cada moto se trata sola, a su ritmo. Sin líneas de ensamblaje, sin atajos.", imagen: "compromiso-resultado.png", alt: "Tanque gris, negro y azul de una MT-09 con acabado espejo" },
+    { numero: "01", titulo: "Precisión, no producción en serie", texto: "Aquí tu moto no hace fila. Se trata sola, a su ritmo, sin atajos.", imagen: "compromiso-resultado.png", alt: "Tanque gris, negro y azul de una MT-09 con acabado espejo" },
     { numero: "02", titulo: "Cuidamos lo que no se ve", texto: "Cadena, motor, plásticos internos — el mismo cuidado que la pintura, aunque nadie lo note a simple vista.", imagen: "compromiso-precision.png", pos: "object-top", alt: "Mano puliendo el carenado negro de una moto con pulidora orbital" },
     { numero: "03", titulo: "Usamos lo que vendemos", texto: "La línea DGK no es solo catálogo: es lo que aplicamos en el taller, todos los días.", imagen: "dgk-linea-productos.png", alt: "Los productos de la línea DGK en flat-lay sobre fondo oscuro" },
     { numero: "04", titulo: "Enseñamos lo que sabemos", texto: "Formación certificada para quien quiere aprender el oficio, no solo contratarlo.", imagen: "compromiso-grupo.png", pos: "object-top", alt: "Grupo de alumnos con sus certificados DGK en el taller" },
@@ -54,6 +54,24 @@ function Grain() {
 export default function App() {
   const app = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDialogElement>(null);
+  const [heroIn, setHeroIn] = useState(false);
+  const [flip, setFlip] = useState(false); // alterna antes/después en la tarjeta de Restauración
+
+  // Restauración: alterna antes/después solo (1s cada uno), como un video, sin necesidad de hover.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setFlip((f) => !f), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Titular del hero: reveal de montaje con CSS (una sola vez al cargar, sin ScrollTrigger).
+  // No depende de requestAnimationFrame, así que el estado final opacity:1 se aplica siempre
+  // y el titular nunca queda invisible, aunque la pestaña cargue en segundo plano.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setHeroIn(true); return; }
+    const t = setTimeout(() => setHeroIn(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -62,10 +80,6 @@ export default function App() {
 
     const ctx = gsap.context(() => {
       const hero = document.querySelector("[data-hero]");
-      const heroCopy = document.querySelector("[data-hero-copy]");
-      if (heroCopy) {
-        gsap.fromTo(heroCopy, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 1, delay: 0.45, ease: "power3.out" });
-      }
       if (hero) {
         gsap.to("[data-hero-video]", {
           scale: 1.08,
@@ -107,9 +121,8 @@ export default function App() {
 
       <header className="absolute inset-x-0 top-0 z-30 px-5 py-5 md:px-10 md:py-8">
         <nav className="mx-auto flex max-w-[1480px] items-center justify-between" aria-label="Principal">
-          <a href="#inicio" className="group flex items-center gap-2.5 rounded-sm text-[#f4f0e8] outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4 focus-visible:ring-offset-[#111]">
-            <span className="grid size-8 place-items-center border border-[#E5B500] text-[11px] font-bold tracking-[-0.08em]">DGK</span>
-            <span className="text-[11px] font-medium uppercase tracking-[0.22em]">Detailing</span>
+          <a href="#inicio" aria-label="DGK Detailing — inicio" className="group flex items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4 focus-visible:ring-offset-[#111]">
+            <img src={asset("logo-dgk.png")} alt="DGK — Definition good keeper" className="h-9 w-auto md:h-10" />
           </a>
           <div className="hidden items-center gap-8 text-[11px] font-medium uppercase tracking-[0.18em] text-white/70 md:flex">
             <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#servicios">Servicios</a>
@@ -117,7 +130,10 @@ export default function App() {
             <Link className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" to="/linea">Línea DGK</Link>
             <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#formacion">Formación</a>
           </div>
-          <button onClick={() => menu.current?.showModal()} className="grid size-10 place-items-center rounded-full border border-white/25 text-white transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" aria-label="Abrir menú"><Menu size={18} /></button>
+          <div className="flex items-center gap-3">
+            <CartButton />
+            <button onClick={() => menu.current?.showModal()} className="grid size-10 place-items-center rounded-full border border-white/25 text-white transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" aria-label="Abrir menú"><Menu size={18} /></button>
+          </div>
         </nav>
       </header>
 
@@ -127,14 +143,13 @@ export default function App() {
             <source src={asset("Video_2.mp4")} type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,9,.84)_0%,rgba(10,10,9,.28)_58%,rgba(10,10,9,.64)_100%),linear-gradient(0deg,rgba(10,10,9,.72),transparent_52%)]" />
-          <div data-hero-copy className="relative mx-auto grid w-full max-w-[1480px] gap-10 opacity-0 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div data-hero-copy className={`relative mx-auto grid w-full max-w-[1480px] gap-10 transition-[opacity,transform] duration-[900ms] ease-out [transition-delay:200ms] lg:grid-cols-[1fr_auto] lg:items-end ${heroIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
             <div className="max-w-4xl">
               <p className="mb-6 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[#E5B500]"><span className="size-1.5 rounded-full bg-[#E5B500]" /> Envigado · Antioquia</p>
-              <h1 className="font-display text-[clamp(2.9rem,6.5vw,6.6rem)] font-medium leading-[0.92] tracking-[-0.04em] text-[#f6f2eb]">Tu moto sale<br /><em className="font-normal text-[#E5B500]">mejor que del concesionario.</em></h1>
+              <h1 className="font-display text-[clamp(2.9rem,6.5vw,6.6rem)] font-medium leading-[0.92] tracking-[-0.04em] text-[#f6f2eb]">Tu moto no se lava.<br /><em className="font-normal text-[#E5B500]">Se consiente.</em></h1>
             </div>
-            <div className="max-w-[275px] border-l border-[#E5B500]/60 pl-5 text-sm leading-6 text-white/75 lg:mb-2">DGK Detailing — servicio, cerámico, PPF y línea propia de productos.</div>
+            <div className="max-w-[290px] border-l border-[#E5B500]/60 pl-5 text-[15px] leading-6 text-white/80 lg:mb-2">Detailing, cerámico, PPF y nuestra propia línea de productos. Todo para que tu moto ruede impecable.</div>
           </div>
-          <a href="#servicios" className="absolute bottom-7 right-5 flex items-center gap-3 rounded-sm font-mono text-[10px] uppercase tracking-[0.18em] text-white/75 transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] md:bottom-10 md:right-10">Descubrir <ChevronDown size={16} /></a>
         </section>
 
         {/* Servicios (reemplaza la antigua sección "El método"). */}
@@ -145,7 +160,7 @@ export default function App() {
                 <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">01 — Servicios</p>
                 <h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] text-[#f5f1e8] md:text-7xl">Todo lo que hacemos<br />por tu moto.</h2>
               </div>
-              <p className="max-w-sm text-sm leading-6 text-white/60 md:justify-self-end">Cinco servicios distintos, cada uno con su técnica. Sin precios de catálogo: cotizamos según tu moto.</p>
+              <p className="max-w-sm text-[15px] leading-7 text-white/75 md:justify-self-end">Cinco servicios, cada uno con su técnica. No hay precio de lista: cada moto es un mundo y la cotizamos como se merece.</p>
             </div>
             <div data-stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {servicios.map((s) => (
@@ -157,15 +172,15 @@ export default function App() {
                   ) : (
                     <>
                       <img src={asset(s.imagen!)} alt={s.alt} className="absolute inset-0 size-full object-cover transition duration-700 group-hover:scale-[1.03]" />
-                      {s.imagenHover && <img src={asset(s.imagenHover)} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover opacity-0 transition duration-500 group-hover:opacity-100" />}
-                      {s.imagenHover && <span className="absolute right-5 top-5 z-10 font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">Antes → Después</span>}
+                      {s.imagenHover && <img src={asset(s.imagenHover)} alt="" aria-hidden="true" className={`absolute inset-0 size-full object-cover transition-opacity duration-300 ${flip ? "opacity-100" : "opacity-0"}`} />}
+                      {s.imagenHover && <span className="absolute right-5 top-5 z-10 font-mono text-[10px] uppercase tracking-[0.18em] text-white/90">{flip ? "Después" : "Antes"}</span>}
                     </>
                   )}
                   <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(10,10,9,.92)_0%,rgba(10,10,9,.35)_55%,rgba(10,10,9,.15)_100%)]" />
                   <div className="relative">
                     <h3 className="max-w-md font-display text-3xl leading-[0.95] tracking-[-0.03em] text-[#f5f1e8] md:text-4xl">{s.nombre}</h3>
                     <p className="mt-3 max-w-sm text-sm leading-6 text-white/65">{s.resumen}</p>
-                    <a href={wa(s.waText)} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Cotizar <ArrowUpRight size={15} /></a>
+                    <Link to={`/cotizar?servicio=${encodeURIComponent(s.nombre)}`} className="mt-5 inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Cotizar <ArrowUpRight size={15} /></Link>
                   </div>
                 </article>
               ))}
@@ -176,10 +191,10 @@ export default function App() {
         {/* Compromiso: grid 2x2, entrada en cascada. Tarjetas sin imagen = solo número + título + texto. */}
         <section id="compromiso" className="bg-[#e6e0d5] px-5 py-20 text-[#171714] md:px-10 md:py-28">
           <div className="mx-auto max-w-[1480px]">
-            <div className="mb-12 max-w-2xl">
-              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.23em] text-[#7A5E00]">{compromiso.eyebrow}</p>
-              <h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] md:text-7xl">{compromiso.titulo}</h2>
-              <p className="mt-7 text-base leading-7 text-[#4b4942]">{compromiso.subtexto}</p>
+            <div className="mb-10 max-w-2xl">
+              <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-[#7A5E00]">{compromiso.eyebrow}</p>
+              <h2 className="font-display text-5xl leading-[0.92] tracking-[-0.035em] md:text-6xl">{compromiso.titulo}</h2>
+              <p className="mt-5 text-[17px] leading-7 text-[#3d3b34]">{compromiso.subtexto}</p>
             </div>
             <div data-stagger className="grid gap-4 sm:grid-cols-2">
               {compromiso.pilares.map((p) => {
@@ -191,8 +206,8 @@ export default function App() {
                     {conMedia && <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(10,10,9,.9)_0%,rgba(10,10,9,.4)_55%,rgba(10,10,9,.2)_100%)]" />}
                     <div className="relative">
                       <span className={`font-mono text-[11px] ${conMedia ? "text-[#F2C623]" : "text-[#7A5E00]"}`}>{p.numero}</span>
-                      <h3 className={`mt-4 max-w-xs font-display text-2xl leading-[1.05] tracking-[-0.02em] md:text-3xl ${conMedia ? "text-[#f5f1e8]" : "text-[#171714]"}`}>{p.titulo}</h3>
-                      <p className={`mt-3 max-w-sm text-sm leading-6 ${conMedia ? "text-white/70" : "text-[#57544c]"}`}>{p.texto}</p>
+                      <h3 className={`mt-3 max-w-xs font-display text-2xl leading-[1.05] tracking-[-0.02em] md:text-3xl ${conMedia ? "text-[#f5f1e8]" : "text-[#171714]"}`}>{p.titulo}</h3>
+                      <p className={`mt-2.5 max-w-sm text-[15px] leading-6 ${conMedia ? "text-white/85" : "text-[#3d3b34]"}`}>{p.texto}</p>
                     </div>
                   </article>
                 );
@@ -204,15 +219,15 @@ export default function App() {
         {/* Línea DGK: teaser en el home; el catálogo con precios vive en /linea. */}
         <section id="linea" className="bg-[#171714] px-5 py-20 md:px-10 md:py-28">
           <div className="mx-auto max-w-[1480px]">
-            <div className="mb-12 grid gap-8 md:grid-cols-2 md:items-end"><div><p className="mb-4 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">03 — La línea DGK</p><h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] text-[#f5f1e8] md:text-7xl">Lo que pones<br />en tus manos.</h2></div><p className="max-w-sm text-sm leading-6 text-white/60 md:justify-self-end">Fórmulas profesionales para mantener el estándar entre cada visita al taller. Nueve productos, con precios, en la tienda.</p></div>
+            <div className="mb-10 grid gap-6 md:grid-cols-2 md:items-center"><div><p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-[#E5B500]">03 — La línea DGK</p><h2 className="font-display text-5xl leading-[0.92] tracking-[-0.035em] text-[#f5f1e8] md:text-6xl">Cuídala como<br />en el taller.</h2></div><p className="max-w-md text-[17px] leading-7 text-white/75 md:justify-self-end">Cerámicos, shampoos y lubricantes de grado profesional — las mismas fórmulas que usamos en cada detailing, ahora en tu garaje.</p></div>
             <div data-reveal className="relative overflow-hidden bg-[#23221e]"><img src={images.productos} alt="Los nueve productos de la línea DGK dispuestos en flat-lay sobre fondo oscuro" className="absolute inset-0 size-full object-cover" /><video className="relative aspect-[16/8] w-full object-cover opacity-60 mix-blend-screen" autoPlay muted loop playsInline preload="metadata"><source src={asset("Todos_los_productos.mp4")} type="video/mp4" /></video><div className="absolute inset-0 bg-gradient-to-t from-[#171714] via-transparent to-transparent" /><div className="absolute bottom-5 left-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#F2C623]"><CirclePlay size={15} /> Serie de producto / DGK</div></div>
             <Link to="/linea" className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#E5B500] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.03] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">Ver la línea y precios <ArrowUpRight size={16} /></Link>
           </div>
         </section>
 
-        <section id="formacion" className="bg-[#e6e0d5] px-5 py-20 text-[#171714] md:px-10 md:py-32"><div className="mx-auto grid max-w-[1480px] gap-12 lg:grid-cols-[1fr_.92fr] lg:items-center lg:gap-20"><div data-reveal className="relative aspect-[4/3] overflow-hidden bg-[#332f29]"><img src={images.certificados} alt="Dos alumnos con su certificado junto a una Ducati roja, frente al muro con el logo DGK Detailing" className="absolute inset-0 size-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" /><p className="absolute bottom-5 left-5 font-mono text-[10px] uppercase tracking-[0.19em] text-white">Formación DGK / Envigado</p></div><div><p className="mb-6 font-mono text-[10px] uppercase tracking-[0.23em] text-[#7A5E00]">04 — Fórmate con nosotros</p><h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] md:text-7xl">Método para<br /><em>hacerlo bien.</em></h2><p className="mt-8 max-w-md text-base leading-7 text-[#4b4942]">Capacitaciones prácticas de detailing para motocicletas. Técnica, criterio y la confianza de entregar un acabado que habla por ti.</p><a href={wa("Hola, quiero inscribirme a la formación de detailing DGK")} target="_blank" rel="noopener noreferrer" className="mt-10 inline-flex items-center gap-3 rounded-full bg-[#191915] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#f4efe7] transition duration-200 hover:scale-[1.025] hover:bg-[#7A5E00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4">Conocer próximas fechas <ArrowUpRight size={16} /></a></div></div></section>
+        <section id="formacion" className="bg-[#e6e0d5] px-5 py-20 text-[#171714] md:px-10 md:py-32"><div className="mx-auto grid max-w-[1480px] gap-12 lg:grid-cols-[1fr_.92fr] lg:items-center lg:gap-20"><div data-reveal className="relative aspect-[4/3] overflow-hidden bg-[#332f29]"><img src={images.certificados} alt="Dos alumnos con su certificado junto a una Ducati roja, frente al muro con el logo DGK Detailing" className="absolute inset-0 size-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" /><p className="absolute bottom-5 left-5 font-mono text-[10px] uppercase tracking-[0.19em] text-white">Formación DGK / Envigado</p></div><div><p className="mb-6 font-mono text-[10px] uppercase tracking-[0.23em] text-[#7A5E00]">04 — Fórmate con nosotros</p><h2 className="font-display text-5xl leading-[0.9] tracking-[-0.035em] md:text-7xl">Método para<br /><em>hacerlo bien.</em></h2><p className="mt-7 max-w-md text-[17px] leading-7 text-[#3d3b34]">¿Quieres aprender el oficio en serio? Te enseñamos la técnica, el criterio y el pulso para entregar un acabado que hable por ti.</p><a href={wa("Hola, quiero inscribirme a la formación de detailing DGK")} target="_blank" rel="noopener noreferrer" className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#191915] px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#f4efe7] transition duration-200 hover:scale-[1.025] hover:bg-[#7A5E00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4">Quiero aprender <ArrowUpRight size={16} /></a></div></div></section>
 
-        <section id="contacto" data-final className="relative overflow-hidden bg-[#121210] px-5 py-24 md:px-10 md:py-36"><div data-final-bg className="absolute -inset-y-8 inset-x-0 opacity-35">{/* TODO(asset real): "Imagen 4" — BMW GS completa frente al muro con logo DGK. */}<img src={images.final} alt="Producto cerámico DGK 6K.Carbon en el taller DGK" className="absolute inset-0 size-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#121210] via-transparent to-[#121210]" /></div><div className="absolute inset-0 bg-[#121210]/75" /><div className="relative mx-auto max-w-[1480px]"><p className="mb-5 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">El siguiente movimiento es tuyo</p><h2 className="max-w-4xl font-display text-[clamp(3.7rem,8vw,8rem)] leading-[0.86] tracking-[-0.045em] text-[#f5f1e8]">Elige tu<br /><em className="text-[#E5B500]">próximo estándar.</em></h2><div data-stagger className="mt-16 grid gap-3 md:grid-cols-3">{[["Cotizar detailing", "Tu moto, en su mejor versión", Sparkles, "Hola, quiero cotizar un detailing para mi moto"], ["Comprar DGK", "Lleva el estándar a casa", ShoppingBag, "Hola, quiero comprar productos de la línea DGK"], ["Inscribirme", "Aprende el método", ArrowUpRight, "Hola, quiero inscribirme a la formación de detailing DGK"]].map(([title, line, Icon, text]) => <a href={wa(String(text))} target="_blank" rel="noopener noreferrer" key={String(title)} className="group flex min-h-44 flex-col justify-between border border-white/20 bg-black/10 p-5 backdrop-blur-sm transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4 focus-visible:ring-offset-[#121210]"><Icon className="text-[#E5B500]" size={20} /><div><h3 className="text-xl text-[#f5f1e8]">{String(title)}</h3><p className="mt-1 text-sm text-white/50">{String(line)}</p></div></a>)}</div></div></section>
+        <section id="contacto" data-final className="relative overflow-hidden bg-[#121210] px-5 py-24 md:px-10 md:py-36"><div data-final-bg className="absolute -inset-y-8 inset-x-0 opacity-35">{/* TODO(asset real): "Imagen 4" — BMW GS completa frente al muro con logo DGK. */}<img src={images.final} alt="Producto cerámico DGK 6K.Carbon en el taller DGK" className="absolute inset-0 size-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#121210] via-transparent to-[#121210]" /></div><div className="absolute inset-0 bg-[#121210]/75" /><div className="relative mx-auto max-w-[1480px]"><p className="mb-5 font-mono text-[10px] uppercase tracking-[0.23em] text-[#E5B500]">El siguiente movimiento es tuyo</p><h2 className="max-w-4xl font-display text-[clamp(3.7rem,8vw,8rem)] leading-[0.86] tracking-[-0.045em] text-[#f5f1e8]">Tu moto ya<br /><em className="text-[#E5B500]">quiere pasar por aquí.</em></h2><div data-stagger className="mt-16 grid gap-3 md:grid-cols-3">{[["Servicios", "Todo lo que hacemos por tu moto", Sparkles, "#servicios"], ["Comprar DGK", "Llévate el taller a casa", ShoppingBag, "#linea"], ["Inscribirme", "Aprende con nosotros", ArrowUpRight, "#formacion"]].map(([title, line, Icon, href]) => <a href={String(href)} key={String(title)} className="group flex min-h-44 flex-col justify-between border border-white/20 bg-black/10 p-5 backdrop-blur-sm transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] focus-visible:ring-offset-4 focus-visible:ring-offset-[#121210]"><Icon className="text-[#E5B500]" size={20} /><div><h3 className="text-xl text-[#f5f1e8]">{String(title)}</h3><p className="mt-1 text-sm text-white/50">{String(line)}</p></div></a>)}</div></div></section>
       </main>
 
       <a href={wa("Hola, quiero más información sobre DGK Detailing")} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp" className="fixed bottom-5 right-5 z-40 grid size-14 place-items-center rounded-full bg-[#E5B500] text-[#171714] shadow-[0_0_0_0_rgba(203,166,95,.4)] transition duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714] motion-safe:animate-[pulse_2.8s_ease-in-out_infinite]"><MessageCircle size={23} /></a>
