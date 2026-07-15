@@ -69,8 +69,6 @@ export default function Producto() {
 
       <main id="contenido" className="bg-background px-5 py-8 md:px-10 md:py-14">
         <div className="mx-auto max-w-[1480px]">
-          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.18em] text-white/45"><Link to="/linea" className="transition hover:text-[#E5B500]">Línea DGK</Link> / <span className="text-white/80">{producto.nombre}</span></p>
-
           <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-14">
             {/* Foto del producto */}
             <div className="relative overflow-hidden rounded-sm bg-[#22211d]">

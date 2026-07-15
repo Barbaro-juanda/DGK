@@ -134,7 +134,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-3">
             <CartButton />
-            <button onClick={() => menu.current?.showModal()} className="grid size-10 place-items-center rounded-full border border-white/25 text-white transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" aria-label="Abrir menú"><Menu size={18} /></button>
+            <button onClick={() => menu.current?.showModal()} className="grid size-10 place-items-center rounded-full border border-white/25 text-white transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] md:hidden" aria-label="Abrir menú"><Menu size={18} /></button>
           </div>
         </nav>
       </header>
