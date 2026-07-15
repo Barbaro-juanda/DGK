@@ -59,13 +59,15 @@ export default function Cotizar() {
   const enviar = (e: FormEvent) => {
     e.preventDefault();
     const mensaje =
-      `¡Hola DGK! Quiero cotizar\n\n` +
-      `Servicio: ${servicio}\n` +
-      `Nombre: ${nombre}\n` +
-      `Modelo: ${modelo}\n` +
-      `Segmento: ${segmentoLabel}\n` +
-      `Cilindraje: ${cilindraje}\n\n` +
-      `¡Quedo atento a la cotización!`;
+      `¡Hola DGK! 👋\n\n` +
+      `Me gustaría cotizar un servicio para mi moto 🛵\n\n` +
+      `🔧 Servicio: ${servicio}\n` +
+      `🏁 Segmento: ${segmentoLabel}\n` +
+      `💨 Cilindraje: ${cilindraje}\n\n` +
+      `Mis datos:\n` +
+      `🙋 ${nombre}\n` +
+      `📍 ${modelo}\n\n` +
+      `¡Quedo atento a la cotización! 🙌💛`;
     const url = `https://wa.me/${WA}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
