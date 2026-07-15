@@ -6,6 +6,10 @@ dist/
 dist-ssr/
 .vite/
 
+# Sanity Studio
+.sanity/
+studio/dist/
+
 # Sistema / editor
 .DS_Store
 *.local

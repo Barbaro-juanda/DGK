@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router";
 import { asset } from "./wa";
-import { products } from "./products";
+import { useContent } from "./content";
 import { useCart } from "./cart";
 import CartButton from "./CartButton.tsx";
 
@@ -15,6 +15,7 @@ function Grain() {
 export default function Linea() {
   const app = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
+  const { productos } = useContent();
 
   useEffect(() => {
     const prevTitle = document.title;
@@ -76,7 +77,7 @@ export default function Linea() {
 
         <section className="bg-[#171714] px-5 pb-24 pt-6 md:px-10 md:pb-32">
           <div data-stagger className="mx-auto grid max-w-[1480px] gap-4 grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
+            {productos.map((p) => (
               <ProductoCard key={p.slug} slug={p.slug} nombre={p.nombre} detalle={p.detalle} precio={p.precio} imagen={p.imagen} onAdd={() => addItem(p.slug, 1)} />
             ))}
           </div>

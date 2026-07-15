@@ -8,11 +8,13 @@
   import Pago from "./app/Pago.tsx";
   import PagoGracias from "./app/PagoGracias.tsx";
   import { CartProvider } from "./app/cart.tsx";
+  import { ContentProvider } from "./app/content.tsx";
   import CartDrawer from "./app/CartDrawer.tsx";
   import "./styles/index.css";
 
   createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
+      <ContentProvider>
       <CartProvider>
         <Routes>
           <Route path="/" element={<App />} />
@@ -24,5 +26,6 @@
         </Routes>
         <CartDrawer />
       </CartProvider>
+      </ContentProvider>
     </BrowserRouter>
   );

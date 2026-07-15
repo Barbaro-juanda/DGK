@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { products, type Producto } from "./products";
+import { type Producto } from "./products";
+import { useContent } from "./content";
 
 export type CartItem = { slug: string; cantidad: number };
 
@@ -43,6 +44,7 @@ function readStorage(): CartItem[] {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { productos } = useContent();
   const [items, setItems] = useState<CartItem[]>(readStorage);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -76,13 +78,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () =>
       items
         .map((i) => {
-          const producto = products.find((p) => p.slug === i.slug);
+          const producto = productos.find((p) => p.slug === i.slug);
           if (!producto) return null;
           const subtotal = parsePrecio(producto.precio) * i.cantidad;
           return { producto, cantidad: i.cantidad, subtotal };
         })
         .filter((l): l is Linea => l !== null),
-    [items]
+    [items, productos]
   );
 
   const total = useMemo(() => lineas.reduce((acc, l) => acc + l.subtotal, 0), [lineas]);

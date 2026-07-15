@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Link, useParams, Navigate, useNavigate } from "react-router";
 import { asset } from "./wa";
-import { getProducto, products } from "./products";
+import { useContent } from "./content";
 import { useCart } from "./cart";
 import CartButton from "./CartButton.tsx";
 
@@ -12,6 +12,7 @@ function Grain() {
 
 export default function Producto() {
   const { slug } = useParams();
+  const { productos, getProducto } = useContent();
   const producto = slug ? getProducto(slug) : undefined;
   const [cantidad, setCantidad] = useState(1);
   const [agregado, setAgregado] = useState(false);
@@ -35,7 +36,7 @@ export default function Producto() {
   // Slug inválido → de vuelta a la línea.
   if (!producto) return <Navigate to="/linea" replace />;
 
-  const otros = products.filter((p) => p.slug !== producto.slug).slice(0, 4);
+  const otros = productos.filter((p) => p.slug !== producto.slug).slice(0, 4);
 
   const agregarAlCarrito = () => {
     addItem(producto.slug, cantidad);
