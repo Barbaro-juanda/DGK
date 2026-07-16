@@ -1,9 +1,9 @@
-import { useEffect } from "react";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
 import { Link, useParams, Navigate } from "react-router";
 import { asset } from "./wa";
 import { useContent } from "./content";
-import { shopifyProductUrl } from "./shopify";
+import { comprarEnShopify } from "./shopify";
 
 function Grain() {
   return <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] opacity-[0.035] mix-blend-screen [background-image:url('data:image/svg+xml,%3Csvg viewBox=%220 0 180 180%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%221%22/%3E%3C/svg%3E')]" />;
@@ -13,6 +13,7 @@ export default function Producto() {
   const { slug } = useParams();
   const { productos, getProducto } = useContent();
   const producto = slug ? getProducto(slug) : undefined;
+  const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     if (!producto) return;
@@ -67,11 +68,15 @@ export default function Producto() {
 
               <div className="my-8 h-px w-full bg-white/12" />
 
-              {/* Compra en la tienda Shopify */}
-              <a href={shopifyProductUrl(producto.slug)} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-[#E5B500] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.02] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714]">
-                Comprar en la tienda <ArrowUpRight size={16} />
-              </a>
-              <p className="mt-3 text-xs text-white/45">Te llevamos a nuestra tienda online segura para completar la compra.</p>
+              {/* Compra directa: crea el carrito en Shopify y va al pago */}
+              <button
+                onClick={async () => { setCargando(true); await comprarEnShopify(producto.slug); setCargando(false); }}
+                disabled={cargando}
+                className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-[#E5B500] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.02] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714] disabled:opacity-70"
+              >
+                {cargando ? <><Loader2 size={16} className="animate-spin" /> Redirigiendo…</> : <>Comprar ahora <ArrowUpRight size={16} /></>}
+              </button>
+              <p className="mt-3 text-xs text-white/45">Te llevamos directo a la pantalla de pago segura para completar la compra.</p>
 
               {/* Descripción */}
               <div className="mt-10 border-t border-white/12 pt-7">

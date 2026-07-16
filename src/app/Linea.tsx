@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router";
 import { asset } from "./wa";
 import { useContent } from "./content";
-import { shopifyProductUrl } from "./shopify";
+import { comprarEnShopify } from "./shopify";
 
 function Grain() {
   return <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] opacity-[0.035] mix-blend-screen [background-image:url('data:image/svg+xml,%3Csvg viewBox=%220 0 180 180%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%221%22/%3E%3C/svg%3E')]" />;
@@ -85,6 +85,13 @@ export default function Linea() {
 }
 
 function ProductoCard({ slug, nombre, detalle, precio, imagen }: { slug: string; nombre: string; detalle: string; precio: string; imagen: string }) {
+  const [cargando, setCargando] = useState(false);
+  const comprar = async () => {
+    setCargando(true);
+    await comprarEnShopify(slug);
+    // Si el redirect no ocurrió (respaldo abrió otra pestaña), soltamos el estado.
+    setCargando(false);
+  };
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-sm bg-[#1b1a17] transition hover:bg-[#22211d]">
       <Link to={`/linea/${slug}`} className="relative overflow-hidden bg-[#22211d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]">
@@ -96,15 +103,14 @@ function ProductoCard({ slug, nombre, detalle, precio, imagen }: { slug: string;
         <p className="mt-1 text-xs text-white/45">{detalle}</p>
         <div className="mt-4 flex items-center justify-between gap-3">
           <p className="font-mono text-lg text-[#F2C623]">{precio}</p>
-          <a
-            href={shopifyProductUrl(slug)}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Comprar ${nombre} en la tienda`}
-            className="flex items-center gap-1.5 rounded-full bg-[#E5B500] px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#171714] transition duration-200 hover:scale-[1.05] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623]"
+          <button
+            onClick={comprar}
+            disabled={cargando}
+            aria-label={`Comprar ${nombre}`}
+            className="flex items-center gap-1.5 rounded-full bg-[#E5B500] px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#171714] transition duration-200 hover:scale-[1.05] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] disabled:opacity-70"
           >
-            Comprar <ArrowUpRight size={13} />
-          </a>
+            {cargando ? <><Loader2 size={13} className="animate-spin" /> …</> : <>Comprar <ArrowUpRight size={13} /></>}
+          </button>
         </div>
       </div>
     </div>
