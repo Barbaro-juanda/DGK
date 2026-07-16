@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Loader2, Minus, Plus } from "lucide-react";
 import { Link, useParams, Navigate } from "react-router";
 import { asset } from "./wa";
 import { useContent } from "./content";
@@ -14,6 +14,7 @@ export default function Producto() {
   const { productos, getProducto } = useContent();
   const producto = slug ? getProducto(slug) : undefined;
   const [cargando, setCargando] = useState(false);
+  const [cantidad, setCantidad] = useState(1);
 
   useEffect(() => {
     if (!producto) return;
@@ -68,14 +69,22 @@ export default function Producto() {
 
               <div className="my-8 h-px w-full bg-white/12" />
 
-              {/* Compra directa: crea el carrito en Shopify y va al pago */}
-              <button
-                onClick={async () => { setCargando(true); await comprarEnShopify(producto.slug); setCargando(false); }}
-                disabled={cargando}
-                className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-[#E5B500] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.02] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714] disabled:opacity-70"
-              >
-                {cargando ? <><Loader2 size={16} className="animate-spin" /> Redirigiendo…</> : <>Comprar ahora <ArrowUpRight size={16} /></>}
-              </button>
+              {/* Cantidad + compra directa: crea el carrito en Shopify (con la cantidad) y va al pago */}
+              <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-white/70">Cantidad</p>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center rounded-full border border-white/20">
+                  <button onClick={() => setCantidad((c) => Math.max(1, c - 1))} aria-label="Disminuir cantidad" className="grid size-11 place-items-center rounded-full text-[#f5f1e8] transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] disabled:opacity-30" disabled={cantidad <= 1}><Minus size={16} /></button>
+                  <span className="min-w-10 text-center font-mono text-lg text-[#f5f1e8]" aria-live="polite">{cantidad}</span>
+                  <button onClick={() => setCantidad((c) => Math.min(99, c + 1))} aria-label="Aumentar cantidad" className="grid size-11 place-items-center rounded-full text-[#f5f1e8] transition hover:text-[#E5B500] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]"><Plus size={16} /></button>
+                </div>
+                <button
+                  onClick={async () => { setCargando(true); await comprarEnShopify(producto.slug, cantidad); setCargando(false); }}
+                  disabled={cargando}
+                  className="inline-flex flex-1 items-center justify-center gap-3 rounded-full bg-[#E5B500] px-7 py-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#171714] transition duration-200 hover:scale-[1.02] hover:bg-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C623] focus-visible:ring-offset-4 focus-visible:ring-offset-[#171714] disabled:opacity-70"
+                >
+                  {cargando ? <><Loader2 size={16} className="animate-spin" /> Redirigiendo…</> : <>Comprar ahora <ArrowUpRight size={16} /></>}
+                </button>
+              </div>
               <p className="mt-3 text-xs text-white/45">Te llevamos directo a la pantalla de pago segura para completar la compra.</p>
 
               {/* Descripción */}
