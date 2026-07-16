@@ -12,7 +12,6 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router";
 import { asset, wa } from "./wa";
-import CartButton from "./CartButton.tsx";
 import { useContent } from "./content";
 
 // Servicios como tarjetas: 4 con video en loop + Restauración con foto antes/después (swap al hover).
@@ -133,7 +132,7 @@ export default function App() {
             <a className="rounded-sm transition hover:text-[#F2C623] focus-visible:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500]" href="#formacion">Formación</a>
           </div>
           <div className="flex items-center gap-3">
-            <CartButton />
+            <Link to="/linea" className="hidden rounded-full border border-white/25 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition hover:border-[#E5B500] hover:text-[#F2C623] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] md:inline-flex">Tienda</Link>
             <button onClick={() => menu.current?.showModal()} className="grid size-10 place-items-center rounded-full border border-white/25 text-white transition hover:border-[#E5B500] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B500] md:hidden" aria-label="Abrir menú"><Menu size={18} /></button>
           </div>
         </nav>
